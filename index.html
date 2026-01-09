@@ -3,7 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Z Photo Selection | Premium Studio Gallery System</title>
+    <title>Z Photo Selection | Premium Studio Gallery System for Photographers</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Z Photo Selection is India's #1 private gallery system for professional photographers. Share photos with clients directly from your local computer. No cloud uploads, no monthly fees. One-time license at ₹4,999.">
+    <meta name="keywords" content="photo selection software, photography gallery, studio management, wedding photography, photo delivery, client gallery, photographer tools, India, local photo sharing, no cloud upload">
+    <meta name="author" content="Z Photo Selection India">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://zphoto.in/">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://zphoto.in/">
+    <meta property="og:title" content="Z Photo Selection | Premium Studio Gallery System">
+    <meta property="og:description" content="Stop uploading to cloud. Start delivering photos instantly from your local drive. India's #1 private gallery system for photographers.">
+    <meta property="og:image" content="https://zphoto.in/assets/og-image.png">
+    <meta property="og:locale" content="en_IN">
+    <meta property="og:site_name" content="Z Photo Selection">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://zphoto.in/">
+    <meta name="twitter:title" content="Z Photo Selection | Premium Studio Gallery System">
+    <meta name="twitter:description" content="Stop uploading to cloud. Start delivering photos instantly from your local drive. India's #1 private gallery system.">
+    <meta name="twitter:image" content="https://zphoto.in/assets/og-image.png">
+    
+    <!-- Additional SEO -->
+    <meta name="theme-color" content="#000000">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <!-- Preload critical assets including audio -->
+    <link rel="preload" href="https://www.soundjay.com/mechanical/sounds/camera-shutter-click-01.mp3" as="fetch" crossorigin>
+    
+    <!-- Structured Data / Schema.org -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Z Photo Selection",
+        "description": "Premium studio gallery system for professional photographers in India. Share photos with clients directly from your local computer.",
+        "applicationCategory": "PhotographyApplication",
+        "operatingSystem": "Windows, macOS",
+        "offers": {
+            "@type": "Offer",
+            "price": "4999",
+            "priceCurrency": "INR",
+            "availability": "https://schema.org/InStock"
+        },
+        "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.9",
+            "reviewCount": "500"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "Z Photo Selection India"
+        }
+    }
+    </script>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -338,7 +398,7 @@
         .hero-content {
             position: relative;
             z-index: 5;
-        }
+        2 }
     </style>
 </head>
 <body class="overflow-x-hidden aperture-bg">
@@ -981,15 +1041,99 @@
         const cameraFlash = document.querySelector('.cursor-camera-flash');
         const screenFlash = document.getElementById('screenFlash');
         
-        // Camera shutter sound
-        const shutterSound = new Audio('https://www.soundjay.com/mechanical/sounds/camera-shutter-click-01.mp3');
-        shutterSound.volume = 0.5;
+        // ===== OPTIMIZED AUDIO HANDLING FOR MOBILE/TABLET =====
+        // Audio context for better mobile support
+        let audioContext = null;
+        let audioBuffer = null;
+        let audioLoaded = false;
+        let userInteracted = false;
         
-        document.addEventListener('mousedown', (e) => {
-            if (e.button === 0) { // Left click only
-                // Play shutter sound
-                shutterSound.currentTime = 0;
-                shutterSound.play().catch(() => {}); // Catch any autoplay errors
+        // Initialize audio on first user interaction (required for mobile)
+        function initAudio() {
+            if (audioContext) return;
+            
+            try {
+                // Create AudioContext (works better on mobile than HTMLAudioElement)
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // Fetch and decode audio file
+                fetch('https://www.soundjay.com/mechanical/sounds/camera-shutter-click-01.mp3')
+                    .then(response => response.arrayBuffer())
+                    .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer))
+                    .then(buffer => {
+                        audioBuffer = buffer;
+                        audioLoaded = true;
+                    })
+                    .catch(err => {
+                        console.log('Audio load failed, falling back to HTMLAudioElement');
+                        // Fallback to HTMLAudioElement if Web Audio API fails
+                        audioBuffer = null;
+                    });
+            } catch (e) {
+                console.log('Web Audio API not supported');
+            }
+        }
+        
+        // Fallback audio element (pre-loaded)
+        const shutterSoundFallback = new Audio();
+        shutterSoundFallback.src = 'https://www.soundjay.com/mechanical/sounds/camera-shutter-click-01.mp3';
+        shutterSoundFallback.volume = 0.5;
+        shutterSoundFallback.preload = 'auto';
+        shutterSoundFallback.load(); // Force preload
+        
+        // Play sound using Web Audio API (instant playback)
+        function playShutterSound() {
+            if (audioContext && audioBuffer && audioLoaded) {
+                // Resume context if suspended (mobile requirement)
+                if (audioContext.state === 'suspended') {
+                    audioContext.resume();
+                }
+                
+                // Create new source for each play (Web Audio best practice)
+                const source = audioContext.createBufferSource();
+                source.buffer = audioBuffer;
+                
+                // Create gain node for volume control
+                const gainNode = audioContext.createGain();
+                gainNode.gain.value = 0.5;
+                
+                source.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                source.start(0);
+            } else {
+                // Fallback to HTMLAudioElement
+                shutterSoundFallback.currentTime = 0;
+                shutterSoundFallback.play().catch(() => {});
+            }
+        }
+        
+        // Initialize audio on first touch/click (mobile requirement)
+        function handleFirstInteraction() {
+            if (!userInteracted) {
+                userInteracted = true;
+                initAudio();
+                
+                // Prime the fallback audio for mobile
+                shutterSoundFallback.play().then(() => {
+                    shutterSoundFallback.pause();
+                    shutterSoundFallback.currentTime = 0;
+                }).catch(() => {});
+            }
+        }
+        
+        // Listen for first interaction on both touch and mouse
+        document.addEventListener('touchstart', handleFirstInteraction, { once: true, passive: true });
+        document.addEventListener('mousedown', handleFirstInteraction, { once: true });
+        
+        // Main click handler with optimized sound
+        function handleClick(e) {
+            // For touch events, use the first touch
+            const isTouchEvent = e.type === 'touchstart';
+            const isLeftClick = !isTouchEvent && e.button === 0;
+            
+            if (isTouchEvent || isLeftClick) {
+                // Play shutter sound (now optimized for mobile)
+                playShutterSound();
                 
                 // Flash the camera
                 cameraFlash.classList.add('flash-on');
@@ -1001,7 +1145,11 @@
                     screenFlash.classList.remove('active');
                 }, 150);
             }
-        });
+        }
+        
+        // Handle both mouse and touch events
+        document.addEventListener('mousedown', handleClick);
+        document.addEventListener('touchstart', handleClick, { passive: true });
         
         // ===== FAQ ACCORDION =====
         const faqQuestions = document.querySelectorAll('.faq-question');
