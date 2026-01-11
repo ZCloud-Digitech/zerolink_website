@@ -1,4 +1,4 @@
-# Z Photo Selection - Premium Studio Gallery System
+# Zerolink - Premium Studio Gallery System
 
 A stunning photography website with a premium Black & White theme, interactive animations, and unique cursor effects.
 
@@ -92,7 +92,7 @@ setTimeout(() => { ... }, 150); // milliseconds
 
 ## 📄 License
 
-© 2024 Z Photo Selection India. All Rights Reserved.
+© 2024 Zerolink India. All Rights Reserved.
 
 ---
 
